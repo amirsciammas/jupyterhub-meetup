@@ -1,0 +1,22 @@
+# Copyright (c) Jupyter Development Team.
+# Distributed under the terms of the Modified BSD License.
+ARG JUPYTERHUB_VERSION
+FROM jupyterhub/jupyterhub-onbuild:$JUPYTERHUB_VERSION
+
+# Install dockerspawner, oauth, postgres
+RUN /opt/conda/bin/conda install -yq psycopg2=2.7 && \
+    /opt/conda/bin/conda clean -tipsy && \
+    /opt/conda/bin/pip install --no-cache-dir \
+        dockerspawner==0.9.*
+
+COPY ./userlist /srv/jupyterhub/userlist
+
+COPY ./logo.png /srv/jupyterhub/logo.png
+
+# Install JupyterLab packages
+RUN pip install jupyterlab==0.32.1 && \
+    jupyter serverextension enable --py jupyterlab --sys-prefix
+
+RUN pip install jupyterhub-dummyauthenticator nbgitpuller
+RUN jupyter serverextension enable --py nbgitpuller --sys-prefix
+RUN jupyter labextension install @jupyterlab/hub-extension@0.9.0
